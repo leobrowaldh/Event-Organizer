@@ -72,7 +72,7 @@ namespace Data.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<int>("ActivityId")
+                    b.Property<int?>("ActivityId")
                         .HasColumnType("int");
 
                     b.Property<Guid>("EventId")
@@ -110,8 +110,7 @@ namespace Data.Migrations
                     b.HasOne("Data.Models.Activity", "Activity")
                         .WithMany("Users")
                         .HasForeignKey("ActivityId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.Cascade);
 
                     b.HasOne("Data.Models.Event", "Event")
                         .WithMany("Users")
