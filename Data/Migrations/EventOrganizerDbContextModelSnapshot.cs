@@ -99,7 +99,6 @@ namespace Data.Migrations
                     b.HasOne("Data.Models.Event", "Event")
                         .WithMany("Activities")
                         .HasForeignKey("EventId")
-                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("Event");
@@ -114,7 +113,6 @@ namespace Data.Migrations
                     b.HasOne("Data.Models.Event", "Event")
                         .WithMany("Users")
                         .HasForeignKey("EventId")
-                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("Activity");
