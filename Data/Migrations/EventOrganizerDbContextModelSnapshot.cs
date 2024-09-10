@@ -109,8 +109,7 @@ namespace Data.Migrations
                 {
                     b.HasOne("Data.Models.Activity", "Activity")
                         .WithMany("Users")
-                        .HasForeignKey("ActivityId")
-                        .OnDelete(DeleteBehavior.SetNull);
+                        .HasForeignKey("ActivityId");
 
                     b.HasOne("Data.Models.Event", "Event")
                         .WithMany("Users")
