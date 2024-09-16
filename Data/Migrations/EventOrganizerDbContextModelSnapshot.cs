@@ -43,7 +43,7 @@ namespace Data.Migrations
 
                     b.HasIndex("EventId");
 
-                    b.ToTable("Activities", (string)null);
+                    b.ToTable("Activities");
                 });
 
             modelBuilder.Entity("Data.Models.Event", b =>
@@ -59,9 +59,12 @@ namespace Data.Migrations
                     b.Property<bool>("OpenForEditing")
                         .HasColumnType("bit");
 
+                    b.Property<bool?>("VotingEnded")
+                        .HasColumnType("bit");
+
                     b.HasKey("Id");
 
-                    b.ToTable("Events", (string)null);
+                    b.ToTable("Events");
                 });
 
             modelBuilder.Entity("Data.Models.User", b =>
@@ -91,7 +94,7 @@ namespace Data.Migrations
 
                     b.HasIndex("EventId");
 
-                    b.ToTable("Users", (string)null);
+                    b.ToTable("Users");
                 });
 
             modelBuilder.Entity("Data.Models.Activity", b =>
@@ -109,12 +112,13 @@ namespace Data.Migrations
                 {
                     b.HasOne("Data.Models.Activity", "Activity")
                         .WithMany("Users")
-                        .HasForeignKey("ActivityId");
+                        .HasForeignKey("ActivityId")
+                        .OnDelete(DeleteBehavior.SetNull);
 
                     b.HasOne("Data.Models.Event", "Event")
                         .WithMany("Users")
                         .HasForeignKey("EventId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("Activity");
