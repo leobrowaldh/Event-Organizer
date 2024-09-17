@@ -33,8 +33,8 @@ namespace Data.Context
                 .HasOne(u => u.Activity)
                 .WithMany(a => a.Users)
                 .HasForeignKey(u => u.ActivityId)
-                .OnDelete(DeleteBehavior.Cascade);
-        }
+				.OnDelete(DeleteBehavior.SetNull);
+		}
 
 
     }

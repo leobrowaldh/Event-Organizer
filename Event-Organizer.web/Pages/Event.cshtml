@@ -10,28 +10,45 @@
 @* Eventuell tillbakaknapp *@
 @* <a asp-page="/UserSelect" class="btn btn-primary mt-3">Back to UserSelect</a> *@
 
-<nav class="navbar bg-body-tertiaryc mb-4">
+<nav class="navbar bg-body-tertiary mb-4">
     <div class="container-fluid d-flex justify-content-center">
-        <h1 class="text-dark bg-light p-3 rounded">@($"Welcome {Model.CurrentUser?.Name ?? "User"} to {Model.ActiveEvent?.Name ?? "No Event Found"}")</h1>
+        <h1 class="text-dark bg-light p-3 rounded">
+            Welcome
+            @if (Model.CurrentUser?.VotingColor != null)
+            {
+                <span class="badge text-white" style="background-color: @Model.CurrentUser.VotingColor;">
+                    @Model.CurrentUser?.Name
+                </span>
+            }
+            else
+            {
+                <span class="badge text-white" style="background-color: #007bff;">
+                    @Model.CurrentUser?.Name
+                </span>
+            }
+            to @(Model.ActiveEvent?.Name ?? "No Event Found")
+        </h1>
     </div>
 </nav>
 
 
-<div class="container-fluid mb-4">
-    <h2 class="display-5">@* Hello @Model.CurrentUser.Name ! *@</h2>
-    <h4 class="text-dark bg-light p-3 rounded">@((Model.ActiveEvent != null) ? (Model.ActiveEvent.OpenForEditing ? "Feel free to add some activities" : "Time to vote") : "No Event Found")</h4>
-</div>
-
 <div class="container-fluid mt-4">
-    <!-- Add Activity Form -->
-    <form method="post" asp-page-handler="AddActivity" id="addActivityForm">
-        <input type="hidden" name="EventId" value="@Model.EventId" />
-        <input type="hidden" name="ActivityName" value="New Activity" />
-        <input type="hidden" name="Description" value="Describe the activity..." />
+    <div class="d-flex align-items-center">
+        <!-- Add Activity Form -->
+        <form method="post" asp-page-handler="AddActivity" id="addActivityForm" class="me-3">
+            <input type="hidden" name="EventId" value="@Model.EventId" />
+            <input type="hidden" name="ActivityName" value="New Activity" />
+            <input type="hidden" name="Description" value="Describe the activity..." />
+            <button type="submit" class="btn btn-success">Add Activity</button>
+        </form>
 
-        <button type="submit" class="btn btn-success">Add Activity</button>
-    </form>
+        <!-- Button trigger modal -->
+        <button type="button" class="btn btn-danger rounded-circle" data-bs-toggle="modal" data-bs-target="#tutorialModal">
+            <i class="bi bi-question-circle"></i>
+        </button>
+    </div>
 </div>
+
 
 <div class="row" id="activity-list">
     @if (Model.Activities != null)
@@ -41,6 +58,12 @@
             <div class="col-sm-6 mb-3 mb-sm-0 activity-card" id="activity-@activity.Id">
                 <div class="card">
                     <div class="card-body">
+                        @* If this is the Activity the User voted for display a voting symbol in users color *@
+                        @foreach (User userVote in activity.Users)
+                        {
+                            <span class="badge text-white" style="background-color: @userVote.VotingColor;">@userVote.Name</span>
+                        }
+
                         <div class="d-flex justify-content-between align-items-center">
                             <!-- Display-only fields (shown by default) -->
                             <div id="viewMode-@activity.Id">
@@ -79,12 +102,42 @@
 
                                 <button type="submit" class="btn btn-danger">Delete</button>
                             </form>
+                            <!-- Voting Button -->
+                            <form method="post" asp-page-handler="Vote">
+				                <input type="hidden" name="EventId" value="@Model.EventId" />
+				                <input type="hidden" name="activityId" value="@activity.Id" />
+				                <button type="submit" class="btn btn-primary">VOTE</button> @* It would be nice if this button had the users color *@
+                            </form>
                         </div>
                     </div>
                 </div>
             </div>
         }
     }
+</div>
+
+<!-- Modal -->
+<div class="modal fade" id="tutorialModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h1 class="modal-title fs-5" id="exampleModalLabel">This is the event you are currently organizing.</h1>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Here you can: </p>
+                <h4>1) Add activities to the event</h4>
+                <p>Just press the "add activity" button and type a name and optional description for an activity you would like to include as a voting alternative for the event.</p>
+                <p>The activity you added will appear on the event page so that people can vote on it.</p>
+                <h4>2) Vote on existing activities</h4>
+                <p>Press the "Vote" button to select the activity of your preference.</p>
+                <p>May the best activity win!</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
 </div>
 
 <script>
@@ -111,7 +164,7 @@
             @foreach (User participant in Model.Users)
             {
                 <li class="list-group-item">
-                    @participant.Name
+                    <span class="badge text-white" style="background-color: @participant.VotingColor;">@participant.Name</span>
                 </li>
             }
         </ul>
@@ -120,4 +173,71 @@
     {
         <p class="text-dark bg-light p-3 rounded">No participants found</p>
     }
-</div> 
+</div>
+
+<!-- End Voting Button and Warning -->
+@if (Model.ActiveEvent != null && Model.ActiveEvent.OpenForEditing)
+{
+    <div class="container mt-4">
+        <div class="card bg-white p-4 shadow-sm">
+            <p class="text-danger mb-3"><strong>Warning:</strong> Ending voting will lock the event and count the votes to determine the winner. This action cannot be undone.</p>
+
+            <!-- End Voting Button (always visible) -->
+            <button type="button" class="btn btn-warning" data-bs-toggle="modal" data-bs-target="@((Model.Activities == null || !Model.Activities.Any()) ? "#noActivitiesModal" : "#endVotingModal")">
+                End Voting
+            </button>
+        </div>
+    </div>
+}
+
+<!-- Modal when there are no activities -->
+<div class="modal fade" id="noActivitiesModal" tabindex="-1" aria-labelledby="noActivitiesModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h1 class="modal-title fs-5" id="noActivitiesModalLabel">No Activities Found</h1>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>You cannot end the voting because there are no activities in the event. Please add activities first.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- End Voting Confirmation Modal when activities are present -->
+<div class="modal fade" id="endVotingModal" tabindex="-1" aria-labelledby="endVotingModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h1 class="modal-title fs-5" id="endVotingModalLabel">Confirm End Voting</h1>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to end the voting? This action will lock the event and count the votes to determine the winner. This action cannot be undone.</p>
+            </div>
+            <div class="modal-footer">
+                <form method="post" asp-page-handler="EndVoting">
+                    <input type="hidden" name="EventId" value="@Model.ActiveEvent.Id" />
+                    <button type="submit" class="btn btn-warning">Yes, End Voting</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<!-- Check if the modal should be shown -->
+@if (Model.IsFirstTimeOnEventPage)
+{
+    <script>
+        window.onload = function () {
+            var tutorialModal = new bootstrap.Modal(document.getElementById('tutorialModal'));
+            tutorialModal.show();
+        };
+    </script>
+}

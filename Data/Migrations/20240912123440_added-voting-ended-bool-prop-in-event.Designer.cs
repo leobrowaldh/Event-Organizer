@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Data.Migrations
 {
     [DbContext(typeof(EventOrganizerDbContext))]
-    [Migration("20240904175029_EventGuidId")]
-    partial class EventGuidId
+    [Migration("20240912123440_added-voting-ended-bool-prop-in-event")]
+    partial class addedvotingendedboolpropinevent
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -62,6 +62,9 @@ namespace Data.Migrations
                     b.Property<bool>("OpenForEditing")
                         .HasColumnType("bit");
 
+                    b.Property<bool?>("VotingEnded")
+                        .HasColumnType("bit");
+
                     b.HasKey("Id");
 
                     b.ToTable("Events");
@@ -75,7 +78,7 @@ namespace Data.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<int>("ActivityId")
+                    b.Property<int?>("ActivityId")
                         .HasColumnType("int");
 
                     b.Property<Guid>("EventId")
@@ -113,8 +116,7 @@ namespace Data.Migrations
                     b.HasOne("Data.Models.Activity", "Activity")
                         .WithMany("Users")
                         .HasForeignKey("ActivityId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.SetNull);
 
                     b.HasOne("Data.Models.Event", "Event")
                         .WithMany("Users")

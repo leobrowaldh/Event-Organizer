@@ -59,6 +59,9 @@ namespace Data.Migrations
                     b.Property<bool>("OpenForEditing")
                         .HasColumnType("bit");
 
+                    b.Property<bool?>("VotingEnded")
+                        .HasColumnType("bit");
+
                     b.HasKey("Id");
 
                     b.ToTable("Events");
@@ -110,7 +113,7 @@ namespace Data.Migrations
                     b.HasOne("Data.Models.Activity", "Activity")
                         .WithMany("Users")
                         .HasForeignKey("ActivityId")
-                        .OnDelete(DeleteBehavior.Cascade);
+                        .OnDelete(DeleteBehavior.SetNull);
 
                     b.HasOne("Data.Models.Event", "Event")
                         .WithMany("Users")

@@ -6,7 +6,7 @@
 }
 
 <div class="container mt-5">
-    <div class="row">
+    <div class="row position-relative">
 
         <!-- Table on the right -->
         <div class="col-md-6">
@@ -23,7 +23,17 @@
                             @foreach (User user in Model.Users)
                             {
                                 <tr>
-                                    <td><a asp-page="Event" asp-route-eventId="@Model.EventId">@user.Name</a></td>
+                                    <td>
+                                        <div style="display: flex; align-items: center;">
+                                            <!-- Badge with user color -->
+                                            <form method="post" asp-page-handler="SelectUser" asp-route-userId="@user.Id" style="display: inline;">
+                                                <input type="hidden" name="EventId" value="@Model.EventId" />
+                                                <button type="submit" class="btn badge text-white text-decoration-none" style="background-color: @user.VotingColor; border: none; padding: 10px; margin-right: 8px;">
+                                                    @user.Name
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </td>
                                 </tr>
                             }
 
@@ -37,15 +47,15 @@
                     </tbody>
 
                 </table>
-                    @if (Model.Users != null && Model.Users.Any())
-                    {
-                        <!-- Additional Text Box -->
-                        <div class="custom-text-box">
-                            <p>
-                                Click your name to proceed to your event page
-                            </p>
-                        </div>
-                    }
+                @if (Model.Users != null && Model.Users.Any())
+                {
+                    <!-- Additional Text Box -->
+                    <div class="custom-text-box">
+                        <p>
+                            Click your name to proceed to your event page
+                        </p>
+                    </div>
+                }
             </div>
         </div>
         <!-- Form on the left -->
@@ -55,9 +65,44 @@
                 <div class="form-group">
                     <!-- Input field for the user's name -->
                     <input asp-for="NewUser" class="form-control" placeholder="Enter your name" />
-                <button type="submit" class="btn btn-primary mt-2 w-100">Submit</button>
+                    <button type="submit" class="btn btn-primary mt-2 w-100">Submit</button>
             </form>
         </div>
 
+        <!-- Button trigger modal -->
+        <button type="button" class="btn btn-danger rounded-circle position-absolute top-0 end-0" data-bs-toggle="modal" data-bs-target="#tutorialModal">
+            <i class="bi bi-question-circle"></i>
+        </button>
+
     </div>
 </div>
+
+<!-- Modal -->
+<div class="modal fade" id="tutorialModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h1 class="modal-title fs-5" id="exampleModalLabel">This is the user selection/creation interface</h1>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>If your name appear on the list, select it, to proceed to the event</p>
+                <p>If your name does not appear on the list, add it by typing in your name and pressing the submit button.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Check if the modal should be shown -->
+@if (Model.IsFirstTimeOnUserList)
+{
+    <script>
+        window.onload = function () {
+            var tutorialModal = new bootstrap.Modal(document.getElementById('tutorialModal'));
+            tutorialModal.show();
+        };
+    </script>
+}

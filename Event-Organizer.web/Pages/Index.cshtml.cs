@@ -8,6 +8,7 @@ namespace Event_Organizer.web.Pages
 {
 	public class IndexModel : PageModel
 	{
+		public bool FirstTimeCreatingEvent { get; set; }
 		private readonly IDataAccess _dataAccess;
 		private readonly ILogger<IndexModel> _logger;
 		[BindProperty]
@@ -21,8 +22,21 @@ namespace Event_Organizer.web.Pages
 
 		public void OnGet()
 		{
+            // Check if the "FirstTimeCreatingEvent" cookie exists
+            var cookie = Request.Cookies["FirstTimeCreatingEvent"];
 
-		}
+            if (string.IsNullOrEmpty(cookie))
+            {
+                // If the cookie doesn't exist, it's the user's first visit
+                FirstTimeCreatingEvent = true;
+
+            }
+            else
+            {
+                // If the cookie exists, it's not the first visit
+                FirstTimeCreatingEvent = false;
+            }
+        }
 		public IActionResult OnPost()
 		{
 			if (EventName is not null)
