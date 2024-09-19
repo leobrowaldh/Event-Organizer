@@ -35,6 +35,8 @@ namespace Event_Organizer.web.Pages
 
         [BindProperty]
         public int ActivityId { get; set; }
+        [BindProperty(SupportsGet = true)]
+        public int? NewActivityId { get; set; }
 
         public Event? ActiveEvent { get; set; }
 
@@ -46,26 +48,6 @@ namespace Event_Organizer.web.Pages
 
         public IActionResult OnGet()
         {
-            // Check if the "IsFirstTimeOnSite" cookie exists
-            var cookie = Request.Cookies["IsFirstTimeOnEventPage"];
-
-            if (string.IsNullOrEmpty(cookie))
-            {
-                // If the cookie doesn't exist, it's the user's first visit
-                IsFirstTimeOnEventPage = true;
-
-                // Set the "FirstVisit" cookie with a value and expiration date
-                var cookieOptions = new CookieOptions
-                {
-                    Expires = DateTime.Now.AddYears(1) // Set the cookie to expire in 1 year
-                };
-                Response.Cookies.Append("IsFirstTimeOnEventPage", "true", cookieOptions);
-            }
-            else
-            {
-                // If the cookie exists, it's not the first visit
-                IsFirstTimeOnEventPage = false;
-            }
 
             Users = _dataAccess.GetEventUsers(EventId);
             ActiveEvent = _dataAccess.GetEvent(EventId);
@@ -88,6 +70,29 @@ namespace Event_Organizer.web.Pages
                 return RedirectToPage("/EventResults", new { eventId = EventId });
             }
 
+            #region Setting cookies
+            // Check if the "IsFirstTimeOnSite" cookie exists
+            var cookie = Request.Cookies["IsFirstTimeOnEventPage"];
+
+            if (string.IsNullOrEmpty(cookie))
+            {
+                // If the cookie doesn't exist, it's the user's first visit
+                IsFirstTimeOnEventPage = true;
+
+                // Set the "FirstVisit" cookie with a value and expiration date
+                var cookieOptions = new CookieOptions
+                {
+                    Expires = DateTime.Now.AddYears(1) // Set the cookie to expire in 1 year
+                };
+                Response.Cookies.Append("IsFirstTimeOnEventPage", "true", cookieOptions);
+            }
+            else
+            {
+                // If the cookie exists, it's not the first visit
+                IsFirstTimeOnEventPage = false;
+            }
+            #endregion
+
             return Page();
         }
 
@@ -102,10 +107,12 @@ namespace Event_Organizer.web.Pages
                 return RedirectToPage("/UserSelect", new { eventId = EventId });
             }
 
+            Activity? newActivity = null;
+
             if (ActiveEvent != null && !string.IsNullOrEmpty(ActivityName))
             {
                 // Create and add the new activity to the event
-                Activity newActivity = new Activity()
+                newActivity = new Activity()
                 {
                     Name = ActivityName,
                     EventId = EventId, // Set the EventId directly
@@ -113,6 +120,13 @@ namespace Event_Organizer.web.Pages
                 };
 
                 _dataAccess.PostActivity(newActivity);
+            }
+
+            // Assuming newActivity has been persisted and has a valid Id
+            if (newActivity != null)
+            {
+                // Redirect to the same page with the new activityId as a query parameter
+                return RedirectToPage("/Event", new { eventId = EventId, newActivityId = newActivity.Id });
             }
 
             return RedirectToPage("/Event", new { eventId = EventId });
